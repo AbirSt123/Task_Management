@@ -63,7 +63,7 @@ class TaskServiceTest {
         SecurityContextHolder.setContext(securityContext);
 
         TaskDTO result = taskService.updateTaskStatus(1, updateDTO);
-        
+
         assertAll(
                 () -> assertEquals(TaskStatus.EN_COURS, result.getStatut()),
                 () -> assertEquals("Updated title", result.getTitre()),
