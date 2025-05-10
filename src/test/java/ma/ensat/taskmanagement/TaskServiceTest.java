@@ -8,7 +8,6 @@ import ma.ensat.taskmanagement.entity.User;
 import ma.ensat.taskmanagement.repository.TaskRepository;
 import ma.ensat.taskmanagement.repository.UserRepository;
 import ma.ensat.taskmanagement.service.TaskService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
-import static ma.ensat.taskmanagement.Enum.TaskStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -36,10 +34,10 @@ class TaskServiceTest {
     private UserRepository userRepository;
 
     @Test
-    public void testUpdateTaskStatus() {
+    void testUpdateTaskStatus_Success() {
         User user = new User();
-        user.setEmail("test@gmail.com");
         user.setId(1);
+        user.setEmail("test@gmail.com");
 
         Task task = new Task();
         task.setId(1);
@@ -47,6 +45,12 @@ class TaskServiceTest {
         task.setTitre("Original title");
         task.setDescription("Original description");
         task.setUtilisateurAssigne(user);
+
+        TaskUpdateDTO updateDTO = new TaskUpdateDTO(
+                "Updated title",
+                "Updated description",
+                TaskStatus.EN_COURS
+        );
 
         when(taskRepository.findById(1)).thenReturn(Optional.of(task));
         when(userRepository.findByEmail("test@gmail.com")).thenReturn(Optional.of(user));
@@ -58,17 +62,18 @@ class TaskServiceTest {
         when(authentication.getName()).thenReturn("test@gmail.com");
         SecurityContextHolder.setContext(securityContext);
 
-        TaskUpdateDTO updateDTO = new TaskUpdateDTO("Updated title", "Updated description", TaskStatus.EN_COURS);
+        TaskDTO result = taskService.updateTaskStatus(1, updateDTO);
+        
+        assertAll(
+                () -> assertEquals(TaskStatus.EN_COURS, result.getStatut()),
+                () -> assertEquals("Updated title", result.getTitre()),
+                () -> assertEquals("Updated description", result.getDescription()),
+                () -> assertEquals(1, result.getUtilisateurAssigneId())
+        );
 
-        TaskDTO updatedTaskDTO = taskService.updateTaskStatus(1, updateDTO);
-
-        assertEquals(TaskStatus.EN_COURS, updatedTaskDTO.getStatut());
-        assertEquals("Updated title", updatedTaskDTO.getTitre());
-        assertEquals("Updated description", updatedTaskDTO.getDescription());
-        assertEquals(1, updatedTaskDTO.getUtilisateurAssigneId());
-
+        // 6. Verify interactions
         verify(taskRepository).findById(1);
         verify(taskRepository).save(task);
         verify(userRepository).findByEmail("test@gmail.com");
     }
-    }
+}
