@@ -26,19 +26,21 @@ public class TaskService {
     private final UserRepository userRepository;
 
     public TaskDTO createTask(TaskCreateDTO taskCreateDTO) {
-        User assignedUser = userRepository.findById(taskCreateDTO.getUtilisateurAssigneId())
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Task task = Task.builder()
                 .titre(taskCreateDTO.getTitre())
                 .description(taskCreateDTO.getDescription())
                 .statut(taskCreateDTO.getStatut())
-                .utilisateurAssigne(assignedUser)
+                .utilisateurAssigne(currentUser)
                 .build();
 
         Task savedTask = taskRepository.save(task);
         return convertToDTO(savedTask);
     }
+
 
     public List<TaskDTO> getTasksForCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();

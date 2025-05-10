@@ -13,5 +13,4 @@ public class TaskCreateDTO {
     private String description;
 
     private TaskStatus statut = TaskStatus.A_FAIRE;
-    private Integer utilisateurAssigneId;
 }
